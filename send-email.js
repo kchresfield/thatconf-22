@@ -1,19 +1,27 @@
+// Required Libraries for NodeJS
+const sgMail = require('@sendgrid/mail')
 require('dotenv').config();
 
-const sgMail = require('@sendgrid/mail')
+// Required file
+const jsonData = require('./email.json')
+
+// Required module from the Twilio library
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
-const msg = {
-  to: 'kaelyn.chresfield@gmail.com', // Change to your recipient
-  from: 'kchresfield@kctalksandcodes.com', // Change to your verified sender
-  subject: 'Sending with SendGrid is Fun',
-  text: 'and easy to do anywhere, even with Node.js',
-  html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+
+for (let name in jsonData){
+  let text = `Hi again ${name}, here's our workshop resources 
+  incase you didn't want to type it in earlier ${process.env.WORKSHOP_LINK}`
+  // console.log(jsonData[name])
+  const msg = {
+    to: jsonData[name].trim(),
+    from: 'kchresfield@kctalksandcodes.com',
+    subject: 'Thank you for visiting our workshop!',
+    text: "Hi again , here's our workshop resources incase you didn't want to type it in earlier twil.io/thatconf-22",
+  }
+
+  sgMail
+    .send(msg)
+    .then(() => console.log("another email sent!"))
+    .catch(err => console.log(err));
+
 }
-sgMail
-  .send(msg)
-  .then(() => {
-    console.log('Email sent')
-  })
-  .catch((error) => {
-    console.error(error)
-  })

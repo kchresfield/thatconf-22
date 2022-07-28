@@ -15,37 +15,46 @@ const twilio = require('twilio')(accountSid, authToken);
 const MessagingResponse = require('twilio').twiml.MessagingResponse;
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 
+// Creating JSON file
+const fs = require('fs');
+
 
 // Webhook to handle incoming SMS messages to the Twilio Phone Number using Twilio Messaging Response
 app.post("/that1", async (req, res) => {
-    let twiml = new MessagingResponse();
-    twiml.message(`Hi, thank you for visiting Twilio's booth!
-Here's a promo code: ${process.env.PROMO_CODE}
-And my contact info if you have any questions: kchresfield@twilio.com`)
-    res.writeHead(200, {'Content-Type': 'text/xml'});
-    res.end(twiml.toString()); 
+
 });
 
 // Function used to call customers back with a message using Twilio Voice Response
-// const callBack = async () => {
-    // let records = await twilio.messages.list({to: twilioNumber}); // access list of users who interacted with Twilio number
-    // records.forEach(message => {
+const callBack = async () => {
+    let records = await twilio.messages.list({to: twilioNumber}); // access list of users who interacted with Twilio number
+    let emailObj = {}
 
-        // const twiml = new VoiceResponse()
-        // twiml.say(`Hi , thank you for participating in Twilio's workshop. Be sure to keep in touch!`)
-        // twilio.calls.create({
-        //         to:"+14147044158",
-        //     from: twilioNumber,
-        //     twiml: twiml.toString()
-        // })
-        // .then(resp => {
-        //     console.log(resp)
-        //     twilio.calls(resp.sid)
-        //     .update({method: 'POST', url: 'http://demo.twilio.com/docs/voice.xml'})
+    records.forEach(message => {
+        let body = message.body;
+        let arr = body.split(",")
+        let name = arr[0]
+        let email = arr[1].trim();
+        emailObj[name] = email;
+    
+        const twiml = new VoiceResponse()
+        twiml.say(`Hi ${name}, thank you for participating in Twilio's workshop. Be sure to keep in touch!`)
+        twilio.calls.create({
+                // to:message.from,
+            from: twilioNumber,
+            twiml: twiml.toString()
+        })
+        .then(resp => {
+            console.log(resp)
+            twilio.calls(resp.sid)
+            .update({method: 'POST', url: 'http://demo.twilio.com/docs/voice.xml'})
             
-        // })
-    // })
-// }
+        })
+    })
+    
+    fs.writeFile("email.json", JSON.stringify(emailObj), function(err, res){
+        if(err) console.log(err);
+    });
+}
 // callBack();
 
 app.listen(port, ()=> {
